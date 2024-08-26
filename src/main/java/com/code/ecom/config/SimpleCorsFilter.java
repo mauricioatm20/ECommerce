@@ -11,48 +11,46 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Filter;
-import java.util.logging.LogRecord;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class SimpleCorsFilter implements Filter {
 
     @Value("${app.client.url}")
-    private String clientAppUrl="";
+    private String clientAppUrl;
 
     public SimpleCorsFilter() {}
 
-
+    @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
 
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
+
+        // Se podría usar un Map para almacenar alguna información de la solicitud, aunque aquí no es necesario
         Map<String,String> map = new HashMap<>();
+
+        // Captura la cabecera 'Origin' de la solicitud
         String originHeader = request.getHeader("origin");
 
+        // Configura los headers de CORS, usando la cabecera 'Origin' capturada
         response.setHeader("Access-Control-Allow-Origin", originHeader);
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "*");
+        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
 
+        // Manejo de la solicitud preflight (OPTIONS)
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
-        }else {
+        } else {
             chain.doFilter(req, res);
         }
-
     }
-
-    public void init(FilterConfig filterConfig) {}
-
-    public void destroy() {}
-
-
-
 
     @Override
-    public boolean isLoggable(LogRecord record) {
-        return false;
-    }
+    public void init(FilterConfig filterConfig) {}
+
+    @Override
+    public void destroy() {}
 }

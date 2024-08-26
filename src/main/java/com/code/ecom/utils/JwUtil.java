@@ -19,7 +19,7 @@ import java.util.function.Function;
 
 public class JwUtil {
 
-    public static final String SECRET = "53958147d";
+    public static final String SECRET = "2lxFgJ4sKp8ZR0k5PFS/w7vBoOsnkhGZR7J4WxtAOWc=";
     public String generateToken(String userName) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, userName);
