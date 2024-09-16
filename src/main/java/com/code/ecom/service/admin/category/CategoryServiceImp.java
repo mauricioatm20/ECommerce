@@ -4,15 +4,16 @@ import com.code.ecom.dto.CategoryDto;
 import com.code.ecom.entity.Category;
 import com.code.ecom.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImp implements CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+
+    private final CategoryRepository categoryRepository;
 
     public Category createCategory(CategoryDto categoryDto) {
         Category category = new Category();
@@ -21,5 +22,9 @@ public class CategoryServiceImp implements CategoryService {
 
         return categoryRepository.save(category);
 
+    }
+
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
     }
 }
