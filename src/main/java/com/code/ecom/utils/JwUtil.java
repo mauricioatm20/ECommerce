@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
-
 public class JwUtil {
 
     public static final String SECRET = "2lxFgJ4sKp8ZR0k5PFS/w7vBoOsnkhGZR7J4WxtAOWc=";
