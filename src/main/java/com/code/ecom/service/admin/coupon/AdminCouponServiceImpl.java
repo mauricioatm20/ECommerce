@@ -15,7 +15,7 @@ public class AdminCouponServiceImpl implements AdminCouponService {
     private final CouponRepository couponRepository;
 
     public Coupon createCoupon(Coupon coupon) {
-        if (couponRepository.existsById(coupon.getId())) {
+        if (couponRepository.existsByCode(coupon.getCode())) {
             throw new ValidationException("Coupon code already exists");
         }
         return couponRepository.save(coupon);
