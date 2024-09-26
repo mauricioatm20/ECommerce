@@ -3,22 +3,20 @@ package com.code.ecom.service.customer.cart;
 import com.code.ecom.dto.AddProductInCartDto;
 import com.code.ecom.dto.CartItemsDto;
 import com.code.ecom.dto.OrderDto;
-import com.code.ecom.entity.CartItems;
-import com.code.ecom.entity.Order;
-import com.code.ecom.entity.Product;
-import com.code.ecom.entity.User;
+import com.code.ecom.dto.PlaceOrderDto;
+import com.code.ecom.entity.*;
 import com.code.ecom.enums.OrderStatus;
-import com.code.ecom.repository.CartItemsRepository;
-import com.code.ecom.repository.OrderRepository;
-import com.code.ecom.repository.ProductRepository;
-import com.code.ecom.repository.UserRepository;
+import com.code.ecom.exceptions.ValidationException;
+import com.code.ecom.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,9 +34,11 @@ public class CartServiceImpl implements CartService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private CouponRepository couponRepository;
+
     public ResponseEntity<?> addProductToCart(AddProductInCartDto addProductInCartDto) {
         Order activeOrder = orderRepository.findByUserIdAndOrderStatus(addProductInCartDto.getUserId(), OrderStatus.Pending);
-
 
         Optional<CartItems> optionalCartItems = cartItemsRepository.findByProductIdAndOrderIdAndUserId(addProductInCartDto.getProductId(), activeOrder.getId(),addProductInCartDto.getUserId());
 
@@ -84,6 +84,124 @@ public class CartServiceImpl implements CartService {
         orderDto.setTotalAmount(activeOrder.getTotalAmount());
         orderDto.setCartItems(cartItemsDtoList);
 
+        if(activeOrder.getCoupon() != null){
+            orderDto.setCouponName(activeOrder.getCoupon().getName());
+        }
+
         return orderDto;
+    }
+
+    public OrderDto applyCoupon(Long userId, String code) {
+        Order activeOrder = orderRepository.findByUserIdAndOrderStatus(userId, OrderStatus.Pending);
+        Coupon coupon = couponRepository.findByCode(code).orElseThrow(()-> new ValidationException("Coupon not found"));
+
+        if(couponIsExpired(coupon)){
+            throw new ValidationException("Coupon has expired");
+        }
+
+        double discountAmount =((coupon.getDiscount()/ 100.0)*activeOrder.getTotalAmount());
+        double netAmount = activeOrder.getTotalAmount() - discountAmount;
+
+        activeOrder.setAmount((long)netAmount);
+        activeOrder.setDiscount((long)discountAmount);
+        activeOrder.setCoupon(coupon);
+
+        orderRepository.save(activeOrder);
+        return activeOrder.getOrderDto();
+    }
+
+    private boolean couponIsExpired(Coupon coupon) {
+        Date currentDate = new Date();
+        Date expirationDate = coupon.getExpirationDate();
+
+        return expirationDate != null && currentDate.after(expirationDate);
+    }
+
+    public OrderDto increaseProductQuantity(AddProductInCartDto addProductInCartDto) {
+        Order activeOrder = orderRepository.findByUserIdAndOrderStatus(addProductInCartDto.getUserId(), OrderStatus.Pending);
+        Optional<Product> optionalProduct = productRepository.findById(addProductInCartDto.getProductId());
+
+        Optional<CartItems> optionalCartItem = cartItemsRepository.findByProductIdAndOrderIdAndUserId(
+                addProductInCartDto.getProductId(), activeOrder.getId(), addProductInCartDto.getUserId()
+        );
+        if(optionalProduct.isPresent() && optionalCartItem.isPresent()){
+            CartItems cartItem = optionalCartItem.get();
+            Product product = optionalProduct.get();
+
+            activeOrder.setAmount(activeOrder.getAmount() + product.getPrice());
+            activeOrder.setTotalAmount(activeOrder.getTotalAmount() + product.getPrice());
+
+            cartItem.setQuantity(cartItem.getQuantity() + 1);
+
+            if (activeOrder.getCoupon() != null ){
+
+                double discountAmount =((activeOrder.getCoupon().getDiscount()/ 100.0) * activeOrder.getTotalAmount());
+                double netAmount = activeOrder.getTotalAmount() - discountAmount;
+
+                activeOrder.setAmount((long)netAmount);
+                activeOrder.setDiscount((long)discountAmount);
+            }
+            cartItemsRepository.save(cartItem);
+            orderRepository.save(activeOrder);
+            return activeOrder.getOrderDto();
+        }
+        return null;
+    }
+
+    public OrderDto decreaseProductQuantity(AddProductInCartDto addProductInCartDto) {
+        Order activeOrder = orderRepository.findByUserIdAndOrderStatus(addProductInCartDto.getUserId(), OrderStatus.Pending);
+        Optional<Product> optionalProduct = productRepository.findById(addProductInCartDto.getProductId());
+
+        Optional<CartItems> optionalCartItem = cartItemsRepository.findByProductIdAndOrderIdAndUserId(
+                addProductInCartDto.getProductId(), activeOrder.getId(), addProductInCartDto.getUserId()
+        );
+        if(optionalProduct.isPresent() && optionalCartItem.isPresent()){
+            CartItems cartItem = optionalCartItem.get();
+            Product product = optionalProduct.get();
+
+            activeOrder.setAmount(activeOrder.getAmount() - product.getPrice());
+            activeOrder.setTotalAmount(activeOrder.getTotalAmount() - product.getPrice());
+
+            cartItem.setQuantity(cartItem.getQuantity() - 1);
+
+            if (activeOrder.getCoupon() != null ){
+
+                double discountAmount =((activeOrder.getCoupon().getDiscount()/ 100.0) * activeOrder.getTotalAmount());
+                double netAmount = activeOrder.getTotalAmount() - discountAmount;
+
+                activeOrder.setAmount((long)netAmount);
+                activeOrder.setDiscount((long)discountAmount);
+            }
+            cartItemsRepository.save(cartItem);
+            orderRepository.save(activeOrder);
+            return activeOrder.getOrderDto();
+        }
+        return null;
+    }
+
+    public OrderDto placeOrder(PlaceOrderDto placeOrderDto) {
+        Order activeOrder = orderRepository.findByUserIdAndOrderStatus(placeOrderDto.getUserId(), OrderStatus.Pending);
+        Optional<User> optionalUser = userRepository.findById(placeOrderDto.getUserId());
+
+        if(optionalUser.isPresent()){
+            activeOrder.setOrderDescription(placeOrderDto.getOrderDescription());
+            activeOrder.setAddress(placeOrderDto.getAddress());
+            activeOrder.setDate(new Date());
+            activeOrder.setOrderStatus(OrderStatus.Placed);
+            activeOrder.setTrackingId(UUID.randomUUID());
+
+            orderRepository.save(activeOrder);
+
+            Order order = new Order();
+            order.setAmount(0L);
+            order.setTotalAmount(0L);
+            order.setDiscount(0L);
+            order.setUser(optionalUser.get());
+            order.setOrderStatus(OrderStatus.Pending);
+            orderRepository.save(order);
+
+            return  activeOrder.getOrderDto();
+        }
+        return null;
     }
 }
