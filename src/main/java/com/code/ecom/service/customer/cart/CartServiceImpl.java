@@ -38,17 +38,42 @@ public class CartServiceImpl implements CartService {
     private CouponRepository couponRepository;
 
     public ResponseEntity<?> addProductToCart(AddProductInCartDto addProductInCartDto) {
+        Optional<User> optionalUser = userRepository.findById(addProductInCartDto.getUserId());
+        if (!optionalUser.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
+
+        // Buscar la orden activa
         Order activeOrder = orderRepository.findByUserIdAndOrderStatus(addProductInCartDto.getUserId(), OrderStatus.Pending);
 
-        Optional<CartItems> optionalCartItems = cartItemsRepository.findByProductIdAndOrderIdAndUserId(addProductInCartDto.getProductId(), activeOrder.getId(),addProductInCartDto.getUserId());
+        // Crear nueva orden si no existe
+        if (activeOrder == null) {
+            activeOrder = new Order();
+            activeOrder.setUser(optionalUser.get());
+            activeOrder.setOrderStatus(OrderStatus.Pending);
+            activeOrder.setTotalAmount(0L); // Inicializar el total
+            activeOrder.setAmount(0L); // Inicializar el monto
+            activeOrder = orderRepository.save(activeOrder);
+        }
 
-        if(optionalCartItems.isPresent()){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        }else {
+        // Buscar el artículo del carrito existente para ese producto y orden
+        Optional<CartItems> optionalCartItems = cartItemsRepository.findByProductIdAndOrderIdAndUserId(addProductInCartDto.getProductId(), activeOrder.getId(), addProductInCartDto.getUserId());
+
+        if (optionalCartItems.isPresent()) {
+            // Incrementar cantidad
+            CartItems existingCartItem = optionalCartItems.get();
+            existingCartItem.setQuantity(existingCartItem.getQuantity() + 1);
+            cartItemsRepository.save(existingCartItem);
+
+            // Actualizar total de la orden
+            activeOrder.setTotalAmount(activeOrder.getTotalAmount() + existingCartItem.getPrice());
+            orderRepository.save(activeOrder);
+
+            return ResponseEntity.ok(existingCartItem.getId());
+        } else {
+            // Agregar nuevo producto al carrito
             Optional<Product> optionalProduct = productRepository.findById(addProductInCartDto.getProductId());
-            Optional<User> optionalUser = userRepository.findById(addProductInCartDto.getUserId());
-
-            if(optionalProduct.isPresent() && optionalUser.isPresent()){
+            if (optionalProduct.isPresent()) {
                 CartItems cart = new CartItems();
                 cart.setProduct(optionalProduct.get());
                 cart.setPrice(optionalProduct.get().getPrice());
@@ -56,20 +81,21 @@ public class CartServiceImpl implements CartService {
                 cart.setUser(optionalUser.get());
                 cart.setOrder(activeOrder);
 
-                CartItems updatedCart = cartItemsRepository.save(cart);
-
+                CartItems savedCartItem = cartItemsRepository.save(cart);
                 activeOrder.setTotalAmount(activeOrder.getTotalAmount() + cart.getPrice());
                 activeOrder.setAmount(activeOrder.getAmount() + cart.getPrice());
                 activeOrder.getCartItems().add(cart);
-
                 orderRepository.save(activeOrder);
-                return ResponseEntity.status(HttpStatus.CREATED).body(cart.getId());
 
-            }else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User or product not foud");
+                return ResponseEntity.status(HttpStatus.CREATED).body(savedCartItem.getId());
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Producto no encontrado");
             }
         }
     }
+
+
+
 
     public OrderDto getCartByUserId(Long userId) {
         Order activeOrder = orderRepository.findByUserIdAndOrderStatus(userId, OrderStatus.Pending);

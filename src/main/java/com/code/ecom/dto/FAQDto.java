@@ -1,2 +1,15 @@
-package com.code.ecom.dto;public class FAQDto {
+package com.code.ecom.dto;
+
+import lombok.Data;
+
+@Data
+public class FAQDto {
+
+    private Long id;
+
+    private String question;
+
+    private String answer;
+
+    private Long productId;
 }
