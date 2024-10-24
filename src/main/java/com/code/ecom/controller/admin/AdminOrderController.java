@@ -1,5 +1,6 @@
 package com.code.ecom.controller.admin;
 
+import com.code.ecom.dto.AnalyticsResponse;
 import com.code.ecom.dto.OrderDto;
 import com.code.ecom.service.admin.adminOrder.AdminOrderService;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,9 @@ public class AdminOrderController {
 
     private final AdminOrderService adminOrderService;
 
-    @GetMapping("/placeOrders")
-    public ResponseEntity<List<OrderDto>> getAllPlaceOrders(){
-        return ResponseEntity.ok(adminOrderService.getAllPlaceOrders());
+    @GetMapping("/placedOrders")
+    public ResponseEntity<List<OrderDto>> getAllPlacedOrders(){
+        return ResponseEntity.ok(adminOrderService.getAllPlacedOrders());
     }
 
     @GetMapping("/order/{orderId}/{status}")
@@ -31,5 +32,10 @@ public class AdminOrderController {
             return new ResponseEntity<>("Something went wrong!", HttpStatus.BAD_REQUEST);
 
         return ResponseEntity.status(HttpStatus.OK).body(orderDto);
+    }
+
+    @GetMapping("/order/analytics")
+    public ResponseEntity<AnalyticsResponse> getAnalytics(){
+        return ResponseEntity.ok(adminOrderService.calculateAnalytics());
     }
 }
