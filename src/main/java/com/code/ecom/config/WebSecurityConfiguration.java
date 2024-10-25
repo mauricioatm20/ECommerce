@@ -22,6 +22,10 @@ public class WebSecurityConfiguration {
 
     private final JwtRequestFilter authFilter;
 
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
