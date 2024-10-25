@@ -22,7 +22,10 @@ public class EcomApplication {
 				@Override
 				public void addCorsMappings(CorsRegistry registry) {
 					registry.addMapping("/**")
-							.allowedMethods("HEAD", "GET", "PUT", "POST", "DELETE", "PATCH");
+							.allowedOrigins("https://ecom-web-mauricio.vercel.app") // dominio del frontend en Vercel
+							.allowedMethods("HEAD", "GET", "PUT", "POST", "DELETE", "PATCH")
+							.allowedHeaders("*") // permite todos los encabezados
+							.allowCredentials(true); // permite cookies si se necesita autenticación de sesión
 				}
 			};
 		}
