@@ -38,8 +38,11 @@ public class SimpleCorsFilter implements Filter {
         response.setHeader("Access-Control-Allow-Origin", clientAppUrl);
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT ");
         response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "*");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept");
+       // response.setHeader("Access-Control-Allow-Headers", "*");
         response.setHeader("Access-Control-Allow-Credentials", "true");
+
+
 
         // Manejo de la solicitud preflight (OPTIONS)
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
