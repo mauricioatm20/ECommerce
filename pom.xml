@@ -65,6 +65,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20210307</version> <!-- Verifica la última versión -->
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
@@ -76,7 +81,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.3.0</version> <!-- Versión actualizada -->
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

@@ -9,7 +9,6 @@ import com.code.ecom.service.auth.AuthService;
 import com.code.ecom.utils.JwUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import netscape.javascript.JSObject;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
