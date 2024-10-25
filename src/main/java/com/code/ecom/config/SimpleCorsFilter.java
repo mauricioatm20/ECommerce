@@ -31,15 +31,16 @@ public class SimpleCorsFilter implements Filter {
         Map<String,String> map = new HashMap<>();
 
         // Captura la cabecera 'Origin' de la solicitud
-        String originHeader = request.getHeader("origin");
+        String originHeader = request.getHeader("Origin");
+        if (originHeader != null) {
+            // Configura CORS solo si el origen coincide con el permitido
+            response.setHeader("Access-Control-Allow-Origin", originHeader.equals(clientAppUrl) ? clientAppUrl : "null");
+        }
 
-        // Configura los headers de CORS, usando la cabecera 'Origin' capturada
-       // response.setHeader("Access-Control-Allow-Origin", originHeader);
-        response.setHeader("Access-Control-Allow-Origin", clientAppUrl);
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT ");
+        // Configura los headers de CORS
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept");
-       // response.setHeader("Access-Control-Allow-Headers", "*");
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
 
