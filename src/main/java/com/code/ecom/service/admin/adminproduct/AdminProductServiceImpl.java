@@ -6,7 +6,6 @@ import com.code.ecom.entity.Category;
 import com.code.ecom.entity.Product;
 import com.code.ecom.repository.CategoryRepository;
 import com.code.ecom.repository.ProductRepository;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

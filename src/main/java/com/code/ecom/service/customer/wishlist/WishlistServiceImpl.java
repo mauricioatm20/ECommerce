@@ -1,6 +1,6 @@
 package com.code.ecom.service.customer.wishlist;
 
-import com.code.ecom.dto.ProductDetailDto;
+
 import com.code.ecom.dto.WishlistDto;
 import com.code.ecom.entity.Product;
 import com.code.ecom.entity.User;
