@@ -5,7 +5,7 @@ import com.code.ecom.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.ArrayList;
+
 import java.util.Date;
 
 import java.util.List;
@@ -46,8 +46,9 @@ public class Order {
     @JoinColumn(name = "coupon_id", referencedColumnName = "id")
     private Coupon coupon;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.ALL)
     private List<CartItems> cartItems;
+
 
     public OrderDto getOrderDto(){
         OrderDto orderDto = new OrderDto();

@@ -1,6 +1,5 @@
 package com.code.ecom.dto;
 
-import com.code.ecom.entity.CartItems;
 import com.code.ecom.enums.OrderStatus;
 import lombok.Data;
 

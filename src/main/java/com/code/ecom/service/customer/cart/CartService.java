@@ -6,6 +6,7 @@ import com.code.ecom.dto.PlaceOrderDto;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface CartService {
 
@@ -22,4 +23,6 @@ public interface CartService {
     OrderDto placeOrder(PlaceOrderDto placeOrderDto);
 
     List<OrderDto> getMyPlaceOrders(Long userId);
+
+    OrderDto searchOrderByTrackingId(UUID trackingId);
 }
